@@ -1,4 +1,4 @@
-Tic-Tac-Toe with Reinforcement Learning
+Learning to play Tic-Tac-Toe with reinforcement learning
 
 
 Code Structure Documentation:
