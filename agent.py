@@ -1,32 +1,33 @@
 import collections
 import numpy as np
 import os
+import pickle
 import random
-import cPickle
 
-class Learner:
+
+class Learner(object):
     """
     Parent class for Q-learning and Sarsa-learning agents.
     """
     def __init__(self, alpha, gamma, epsilon):
-        # reward cumulator
+        # Reward accumulator
         self.total_reward = 0
-        # keep a list of accumulated award for each episode
+        # Keep a list of accumulated award for each episode
         self.rewards = []
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
-        # possible actions correspond to the set of all x,y coordinate pairs
+        # Possible actions correspond to the set of all x,y coordinate pairs
         self.actions = []
         for i in range(3):
-            self.actions += [(0,i),(1,i),(2,i)]
+            self.actions += [(0, i), (1, i), (2, i)]
         self.Q = {}
         for action in self.actions:
-            #initalize Q values of all state-action pairs to 0
+            # Initialize Q values of all state-action pairs to 0
             self.Q[action] = collections.defaultdict(int)
 
     def get_action(self, s):
-        # make sure we only consider empty board spaces
+        # Make sure we only consider empty board spaces
         possible_actions = [a for a in self.actions if s[a[0]*3 + a[1]] == '-']
         if random.random() < self.epsilon:
             # Random choose.
@@ -45,9 +46,10 @@ class Learner:
         """ Pickle the agent object instance to save the agent's state. """
         if os.path.isfile(path):
             os.remove(path)
-        f = open(path,'wb')
-        cPickle.dump(self,f)
+        f = open(path, 'wb')
+        pickle.dump(self, f)
         f.close()
+
 
 class QLearner(Learner):
     """
@@ -58,9 +60,9 @@ class QLearner(Learner):
 
     def update(self, s, s_, a, r):
         """ Perform the Q-Learning step update of Q values. """
-        #update Q(s,a)
+        # Update Q(s,a)
         if s_ is not None:
-            # hold list of Q values for all a_,s_ pairs so we can access max later
+            # Hold list of Q values for all a_,s_ pairs so we can access max later
             Q_options = []
             for action in self.actions:
                 Q_options += [self.Q[action][s_]]
@@ -78,14 +80,14 @@ class SarsaLearner(Learner):
 
     def update(self, s, s_, a, a_, r):
         """ Perform the Sarsa step update of Q values. """
-        #update Q(s,a)
+        # Update Q(s,a)
         if s_ is not None:
             self.Q[a][s] = (1 - self.alpha)*self.Q[a][s] + self.alpha*(r + self.gamma*self.Q[a_][s_])
         else:
             self.Q[a][s] = (1 - self.alpha)*self.Q[a][s] + self.alpha*r
 
 
-class Teacher:
+class Teacher(object):
     """ A class to implement a teacher that knows the optimal playing strategy.
     Teacher returns the best move at any time given the current state of the game.
     Note: things are a bit more hard-coded here, as this was not the main focus of
@@ -101,30 +103,30 @@ class Teacher:
 
     def win(self, board, key='X'):
         """ If we have two in a row and the 3rd is available, take it. """
-        #Check for diagonal wins
+        # Check for diagonal wins
         a = [board[0][0], board[1][1], board[2][2]]
         b = [board[0][2], board[1][1], board[2][0]]
         if a.count('-') == 1 and a.count(key) == 2:
             ind = a.index('-')
-            return (ind,ind)
+            return ind, ind
         elif b.count('-') == 1 and b.count(key) == 2:
             ind = b.index('-')
             if ind == 0:
-                return (0,2)
+                return 0, 2
             elif ind == 1:
-                return (1,1)
+                return 1, 1
             else:
-                return (2,0)
-        #Now check for 2 in a row/column + empty 3rd
+                return 2, 0
+        # Now check for 2 in a row/column + empty 3rd
         for i in range(3):
             c = [board[0][i], board[1][i], board[2][i]]
             d = [board[i][0], board[i][1], board[i][2]]
             if c.count('-') == 1 and c.count(key) == 2:
                 ind = c.index('-')
-                return (ind,i)
+                return ind, i
             elif d.count('-') == 1 and d.count(key) == 2:
                 ind = d.index('-')
-                return (i,ind)
+                return i, ind
         return None
 
     def blockWin(self, board):
@@ -133,117 +135,117 @@ class Teacher:
 
     def fork(self, board):
         """ Create a fork opportunity such that we have 2 threats to win. """
-        #check all adjacent side middles
+        # Check all adjacent side middles
         if board[1][0] == 'X' and board[0][1] == 'X':
             if board[0][0] == '-' and board[2][0] == '-' and board[0][2] == '-':
-                return (0,0)
+                return 0, 0
             elif board[1][1] == '-' and board[2][1] == '-' and board[1][2] == '-':
-                return (1,1)
+                return 1, 1
         elif board[1][0] == 'X' and board[2][1] == 'X':
             if board[2][0] == '-' and board[0][0] == '-' and board[2][2] == '-':
-                return (2,0)
+                return 2, 0
             elif board[1][1] == '-' and board[0][1] == '-' and board[1][2] == '-':
-                return (1,1)
+                return 1, 1
         elif board[2][1] == 'X' and board[1][2] == 'X':
             if board[2][2] == '-' and board[2][0] == '-' and board[0][2] == '-':
-                return (2,2)
+                return 2, 2
             elif board[1][1] == '-' and board[1][0] == '-' and board[0][1] == '-':
-                return (1,1)
+                return 1, 1
         elif board[1][2] == 'X' and board[0][1] == 'X':
             if board[0][2] == '-' and board[0][0] == '-' and board[2][2] == '-':
-                return (0,2)
+                return 0, 2
             elif board[1][1] == '-' and board[1][0] == '-' and board[2][1] == '-':
-                return (1,1)
-        #check all cross corners
+                return 1, 1
+        # Check all cross corners
         elif board[0][0] == 'X' and board[2][2] == 'X':
             if board[1][0] == '-' and board[2][1] == '-' and board[2][0] == '-':
-                return (2,0)
+                return 2, 0
             elif board[0][1] == '-' and board[1][2] == '-' and board[0][2] == '-':
-                return (0,2)
+                return 0, 2
         elif board[2][0] == 'X' and board[0][2] == 'X':
             if board[2][1] == '-' and board[1][2] == '-' and board[2][2] == '-':
-                return (2,2)
+                return 2, 2
             elif board[1][0] == '-' and board[0][1] == '-' and board[0][0] == '-':
-                return (0,0)
+                return 0, 0
         return None
 
     def blockFork(self, board):
         """ Block the opponents fork if she has one available. """
         corners = [board[0][0], board[2][0], board[0][2], board[2][2]]
-        #check all adjacent side middles
+        # Check all adjacent side middles
         if board[1][0] == 'O' and board[0][1] == 'O':
             if board[0][0] == '-' and board[2][0] == '-' and board[0][2] == '-':
-                return (0,0)
+                return 0, 0
             elif board[1][1] == '-' and board[2][1] == '-' and board[1][2] == '-':
-                return (1,1)
+                return 1, 1
         elif board[1][0] == 'O' and board[2][1] == 'O':
             if board[2][0] == '-' and board[0][0] == '-' and board[2][2] == '-':
-                return (2,0)
+                return 2, 0
             elif board[1][1] == '-' and board[0][1] == '-' and board[1][2] == '-':
-                return (1,1)
+                return 1, 1
         elif board[2][1] == 'O' and board[1][2] == 'O':
             if board[2][2] == '-' and board[2][0] == '-' and board[0][2] == '-':
-                return (2,2)
+                return 2, 2
             elif board[1][1] == '-' and board[1][0] == '-' and board[0][1] == '-':
-                return (1,1)
+                return 1, 1
         elif board[1][2] == 'O' and board[0][1] == 'O':
             if board[0][2] == '-' and board[0][0] == '-' and board[2][2] == '-':
-                return (0,2)
+                return 0, 2
             elif board[1][1] == '-' and board[1][0] == '-' and board[2][1] == '-':
-                return (1,1)
-        #check all cross corners (first check for double fork opp using the corners array)
+                return 1, 1
+        # Check all cross corners (first check for double fork opp using the corners array)
         elif corners.count('-') == 1 and corners.count('O') == 2:
-            return (1,2)
+            return 1, 2
         elif board[0][0] == 'O' and board[2][2] == 'O':
             if board[1][0] == '-' and board[2][1] == '-' and board[2][0] == '-':
-                return (2,0)
+                return 2, 0
             elif board[0][1] == '-' and board[1][2] == '-' and board[0][2] == '-':
-                return (0,2)
+                return 0, 2
         elif board[2][0] == 'O' and board[0][2] == 'O':
             if board[2][1] == '-' and board[1][2] == '-' and board[2][2] == '-':
-                return (2,2)
+                return 2, 2
             elif board[1][0] == '-' and board[0][1] == '-' and board[0][0] == '-':
-                return (0,0)
+                return 0, 0
         return None
 
     def center(self, board):
         """ Pick the center if it is available. """
         if board[1][1] == '-':
-            return (1,1)
+            return 1, 1
         return None
 
     def corner(self, board):
         """ Pick a corner move. """
-        #Pick opposite corner of opponent if available
+        # Pick opposite corner of opponent if available
         if board[0][0] == 'O' and board[2][2] == '-':
-            return (2,2)
+            return 2, 2
         elif board[2][0] == 'O' and board[0][2] == '-':
-            return (0,2)
+            return 0, 2
         elif board[0][2] == 'O' and board[2][0] == '-':
-            return (2,0)
+            return 2, 0
         elif board[2][2] == 'O' and board[0][0] == '-':
-            return (0,0)
-        #Pick any corner if no opposites are available
+            return 0, 0
+        # Pick any corner if no opposites are available
         elif board[0][0] == '-':
-            return (0,0)
+            return 0, 0
         elif board[2][0] == '-':
-            return (2,0)
+            return 2, 0
         elif board[0][2] == '-':
-            return (0,2)
+            return 0, 2
         elif board[2][2] == '-':
-            return (2,2)
+            return 2, 2
         return None
 
     def sideEmpty(self, board):
         """ Pick an empty side. """
         if board[1][0] == '-':
-            return (1,0)
+            return 1, 0
         elif board[2][1] == '-':
-            return (2,1)
+            return 2, 1
         elif board[1][2] == '-':
-            return (1,2)
+            return 1, 2
         elif board[0][1] == '-':
-            return (0,1)
+            return 0, 1
         return None
 
     def randomMove(self, board):
@@ -252,8 +254,8 @@ class Teacher:
         for i in range(3):
             for j in range(3):
                 if board[i][j] == '-':
-                    possibles += [(i,j)]
-        return possibles[random.randint(0,len(possibles)-1)]
+                    possibles += [(i, j)]
+        return possibles[random.randint(0, len(possibles)-1)]
 
     def makeMove(self, board):
         """
@@ -261,10 +263,10 @@ class Teacher:
         is currently available each time. A touple is returned that represents
         (row, col).
         """
-        # chose randomly with some probability so that the teacher does not always win
+        # Chose randomly with some probability so that the teacher does not always win
         if random.random() > self.ability_level:
             return self.randomMove(board)
-        # follow optimal strategy
+        # Follow optimal strategy
         a = self.win(board)
         if a is not None:
             return a

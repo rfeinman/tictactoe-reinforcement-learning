@@ -1,13 +1,14 @@
-import sys
-import os
-import time
-import random
-import argparse
-import cPickle
+from __future__ import print_function
 
+import argparse
 import matplotlib.pylab as plt
+import os
+import pickle
+import random
+import sys
 
 from agent import QLearner, SarsaLearner, Teacher
+
 
 def plot_agent_reward(rewards, agent_type):
     """ Function to plot agent's accumulated reward vs. episode """
@@ -20,7 +21,8 @@ def plot_agent_reward(rewards, agent_type):
     plt.xlabel('Episode')
     plt.show()
 
-class Game:
+
+class Game(object):
     """ The game class. New instance created for each new game. """
     def __init__(self, agent, teacher=None):
         self.computer = agent
@@ -30,15 +32,15 @@ class Game:
 
     def printBoard(self):
         """ Prints the game board as text output to the terminal. """
-        print "    0   1   2\n"
+        print('    0   1   2\n')
         row_num = 0
         for row in self.board:
-            print row_num, ' ',
+            print('%i   ' % row_num, end='')
             for elt in row:
-                print elt, ' ',
-            print '\n'
+                print('%s   ' % elt, end='')
+            print('\n')
             row_num += 1
-        print '\n'
+        print('\n')
 
     def playerMove(self):
         """ Querry player for a move and update the board accordingly. """
@@ -48,15 +50,15 @@ class Game:
         else:
             self.printBoard()
             while True:
-                move = raw_input("Your move! Please select a row and column from 0-2 "\
-                                    "in the format row,col: ")
+                move = raw_input("Your move! Please select a row and column from 0-2 "
+                                 "in the format row,col: ")
                 try:
                     row, col = int(move[0]), int(move[2])
                 except ValueError:
-                    print "INVALID INPUT! Please use the correct format."
+                    print("INVALID INPUT! Please use the correct format.")
                     continue
                 if row not in range(3) or col not in range(3) or not self.board[row][col] == '-':
-                    print "INVALID MOVE! Choose again."
+                    print("INVALID MOVE! Choose again.")
                     continue
                 self.board[row][col] = 'X'
                 break
@@ -70,12 +72,12 @@ class Game:
         Check to see whether the player/agent with token 'key' has won.
         Returns a boolean holding truth value.
         """
-        #check for player win on diagonals
+        # check for player win on diagonals
         a = [self.board[0][0], self.board[1][1], self.board[2][2]]
         b = [self.board[0][2], self.board[1][1], self.board[2][0]]
         if a.count(key) == 3 or b.count(key) == 3:
             return True
-        #check for player win on rows/columns
+        # check for player win on rows/columns
         for i in range(3):
             col = [self.board[0][i], self.board[1][i], self.board[2][i]]
             row = [self.board[i][0], self.board[i][1], self.board[i][2]]
@@ -105,14 +107,14 @@ class Game:
             if self.teacher is None:
                 self.printBoard()
                 if key == 'X':
-                    print "Player wins!"
+                    print("Player wins!")
                 else:
-                    print "RL agent wins!"
+                    print("RL agent wins!")
             return 1
         elif self.checkForDraw():
             if self.teacher is None:
                 self.printBoard()
-                print "It's a draw!"
+                print("It's a draw!")
             return 0
         return -1
 
@@ -129,7 +131,7 @@ class Game:
 
     def playGame(self, agent_type, player_first):
         """ Begin the tic-tac-toe game loop. """
-        # initialize the agent's state and action
+        # Initialize the agent's state and action
         if player_first:
             self.playerMove()
         oldState = self.getStateKey()
@@ -178,7 +180,7 @@ class Game:
 
         self.computer.total_reward += reward
         self.computer.rewards += [self.computer.total_reward]
-        # final update and save
+        # Final update and save
         if agent_type == 'q':
             self.computer.update(oldState, None, action, reward)
             self.computer.save_agent('./qlearner_agent.pkl')
@@ -194,26 +196,25 @@ class Game:
         if self.teacher is not None:
             # During teaching, chose who goes first randomly with equal probability
             if random.random() < 0.5:
-                self.playGame(agent_type,False)
+                self.playGame(agent_type, False)
             else:
-                self.playGame(agent_type,True)
+                self.playGame(agent_type, True)
         else:
             while True:
                 response = raw_input("Would you like to go first? [y/n]: ")
                 if response == 'n' or response == 'no':
                     #self.playComputerFirst(agent_type)
-                    self.playGame(agent_type,False)
+                    self.playGame(agent_type, False)
                     break
                 elif response == 'y' or response == 'yes':
                     #self.playPlayerFirst(agent_type)
-                    self.playGame(agent_type,True)
+                    self.playGame(agent_type, True)
                     break
                 else:
-                    print "Invalid input. Please enter 'y' or 'n'."
+                    print("Invalid input. Please enter 'y' or 'n'.")
 
 
-
-class GameLearning:
+class GameLearning(object):
     """
     A class that holds the state of the learning process. Learning
     agents are created/loaded here, and a count is kept of the
@@ -229,7 +230,7 @@ class GameLearning:
                 try:
                     f = open('./qlearner_agent.pkl','rb')
                 except IOError:
-                    print "The agent file does not exist. Quitting."
+                    print("The agent file does not exist. Quitting.")
                     sys.exit(0)
                 self.type = 'q'
             else:
@@ -237,29 +238,29 @@ class GameLearning:
                 try:
                     f = open('./sarsa_agent.pkl','rb')
                 except IOError:
-                    print "The agent file does not exist. Quitting."
+                    print("The agent file does not exist. Quitting.")
                     sys.exit(0)
                 self.type = 's'
-            self.agent = cPickle.load(f)
+            self.agent = pickle.load(f)
             f.close()
-            # if plotting, show plot and quit
+            # If plotting, show plot and quit
             if args.plot:
                 plot_agent_reward(self.agent.rewards, self.type)
                 sys.exit(0)
         else:
             # check if agent state file already exists, and ask user whether to overwrite if so
             if ((args.learner_type == "q" and os.path.isfile('./qlearner_agent.pkl')) or
-                (args.learner_type == "s" and os.path.isfile('./qlearner_agent.pkl'))):
+                    (args.learner_type == "s" and os.path.isfile('./qlearner_agent.pkl'))):
                 while True:
-                    response = raw_input("An agent state is already saved for this type. " \
-                                        "Are you sure you want to overwrite? [y/n]: ")
+                    response = raw_input("An agent state is already saved for this type. "
+                                         "Are you sure you want to overwrite? [y/n]: ")
                     if response == 'y' or response == 'yes':
                         break
                     elif response == 'n' or response == 'no':
-                        print "OK. Quitting."
+                        print("OK. Quitting.")
                         sys.exit(0)
                     else:
-                        print "Invalid input. Please choose 'y' or 'n'."
+                        print("Invalid input. Please choose 'y' or 'n'.")
             if args.learner_type == "q":
                 self.agent = QLearner(alpha,gamma,epsilon)
                 self.type = 'q'
@@ -269,54 +270,58 @@ class GameLearning:
 
     def beginPlaying(self):
         """ Loop through game iterations with a human player. """
-        print "Welcome to Tic-Tac-Toe. You are 'X' and the computer is 'O'."
+        print("Welcome to Tic-Tac-Toe. You are 'X' and the computer is 'O'.")
+
         def play_again():
-            print "Games played: ",self.games_played
+            print("Games played: %i" % self.games_played)
             while True:
-                play_again = raw_input("Do you want to play again? [y/n]: ")
-                if play_again == 'y' or play_again == 'yes':
+                play = raw_input("Do you want to play again? [y/n]: ")
+                if play == 'y' or play == 'yes':
                     return True
-                elif play_again == 'n' or play_again == 'no':
+                elif play == 'n' or play == 'no':
                     return False
                 else:
-                    print "Invalid input. Please choose 'y' or 'n'."
+                    print("Invalid input. Please choose 'y' or 'n'.")
+
         while True:
             game = Game(self.agent)
             game.start(self.type)
             self.games_played += 1
             if not play_again():
-                print "OK. Quitting."
+                print("OK. Quitting.")
                 break
 
     def beginTeaching(self, episodes):
         """ Loop through game iterations with a teaching agent. """
         teacher = Teacher()
-        # train for alotted number of episodes
+        # Train for alotted number of episodes
         while self.games_played < episodes:
-            game = Game(self.agent,teacher=teacher)
+            game = Game(self.agent, teacher=teacher)
             game.start(self.type)
             self.games_played += 1
-            # monitor progress
+            # Monitor progress
             if self.games_played % 500 == 0:
-                print "Games played: ", self.games_played
+                print("Games played: %i" % self.games_played)
 
 
 if __name__ == "__main__":
-    # parse command line arguments
+    # Parse command line arguments
     parser = argparse.ArgumentParser(description="Play Tic-Tac-Toe.")
-    parser.add_argument("learner_type", help="Specify the computer agent lerning algorithm.\
-                        'q' for qlearning and 's' for sarsa", type=str, default="q")
+    parser.add_argument("learner_type", help="Specify the computer agent learning algorithm."
+                                             "'q' for Q-learning and 's' for Sarsa-learning",
+                        type=str, default="q")
     parser.add_argument("-l", "--load", help="load trained agent", action="store_true")
-    parser.add_argument("-t", "--teacher", help="employ teacher agent who knows the optimal strategy", default=None, type=int)
-    parser.add_argument("-p", "--plot", help="plot reward vs. episode of stored agent and quit", action="store_true")
+    parser.add_argument("-t", "--teacher", help="employ teacher agent who knows the optimal strategy",
+                        default=None, type=int)
+    parser.add_argument("-p", "--plot", help="plot reward vs. episode of stored agent and quit",
+                        action="store_true")
     args = parser.parse_args()
-    # agent type must be q or s
     assert args.learner_type == 'q' or args.learner_type == 's', \
-    "learner type must be either 'q' or 's'."
+        "learner type must be either 'q' or 's'."
     if args.plot:
         assert args.load, "Must load an agent to plot reward."
         assert args.teacher is None, \
-        "Cannot plot and teach concurrently; must chose one or the other."
+            "Cannot plot and teach concurrently; must chose one or the other."
 
     gl = GameLearning(args)
     if args.teacher is not None:
