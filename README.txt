@@ -1,7 +1,11 @@
-Learning to play Tic-Tac-Toe with reinforcement learning
+# Tic-Tac-Toe with Reinforcement Learning
+This is a repository for training an AI agent to play Tic-tac-toe using
+reinforcement learning. Both the Sarsa learning and Q-learning RL
+algorithms are implemented. A user may teach the agent himself by
+playing the game for a couple of rounds, or he may apply an automated
+teacher agent. 
 
-
-Code Structure Documentation:
+## Code Structure
 
 There are 3 main code files associated with this project:
     1) game.py
@@ -37,9 +41,7 @@ are implemented for each game.
 
 Unit tests can be found in test.py.
 
-
-
-Running the Program:
+## Running the Program
 
 I have trained an instance of each the Q-learner and Sarsa-learner agents
 and pickled them into .pkl files that are included here. These agents were
