@@ -8,9 +8,9 @@ teacher agent.
 ## Code Structure
 
 There are 3 main code files associated with this project:
-    1) game.py
-    2) agent.py
-    3) test.py
+1. game.py
+1. agent.py
+1. test.py
 
 I have implemented two RL agents that learn to play the game of tic-tac-toe:
 one follows the Sarsa learning algorithm, and the other follows Q-learning.
