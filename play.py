@@ -100,8 +100,10 @@ class GameLearning(object):
             game.start()
             self.games_played += 1
             # Monitor progress
-            if self.games_played % 500 == 0:
+            if self.games_played % 1000 == 0:
                 print("Games played: %i" % self.games_played)
+
+        plot_agent_reward(self.agent.rewards)
 
 
 if __name__ == "__main__":
