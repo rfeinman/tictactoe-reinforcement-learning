@@ -1,11 +1,19 @@
 import random
 
-class Teacher(object):
-    """ A class to implement a teacher that knows the optimal playing strategy.
+class Teacher:
+    """ 
+    A class to implement a teacher that knows the optimal playing strategy.
     Teacher returns the best move at any time given the current state of the game.
     Note: things are a bit more hard-coded here, as this was not the main focus of
     the exercise so I did not spend as much time on design/style. Everything works
-    properly when tested."""
+    properly when tested.
+
+    Parameters
+    ----------
+    level : float 
+        teacher ability level. This is a value between 0-1 that indicates the
+        probability of making the optimal move at any given time.
+    """
 
     def __init__(self, level=0.9):
         """
