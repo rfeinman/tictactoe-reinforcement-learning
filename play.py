@@ -107,14 +107,15 @@ class GameLearning(object):
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Play Tic-Tac-Toe.")
-    parser.add_argument("learner_type", help="Specify the computer agent learning algorithm."
-                                             "'q' for Q-learning and 's' for Sarsa-learning",
-                        type=str, default="q")
-    parser.add_argument("-l", "--load", help="load trained agent", action="store_true")
-    parser.add_argument("-t", "--teacher", help="employ teacher agent who knows the optimal strategy",
-                        default=None, type=int)
-    parser.add_argument("-p", "--plot", help="plot reward vs. episode of stored agent and quit",
-                        action="store_true")
+    parser.add_argument("learner_type", type=str, default="q",
+                        help="Specify the computer agent learning algorithm."
+                             "'q' for Q-learning and 's' for Sarsa-learning")
+    parser.add_argument("-l", "--load", action="store_true",
+                        help="load trained agent")
+    parser.add_argument("-t", "--teacher", default=None, type=int,
+                        help="employ teacher agent who knows the optimal strategy")
+    parser.add_argument("-p", "--plot", action="store_true",
+                        help="plot reward vs. episode of stored agent and quit")
     args = parser.parse_args()
     assert args.learner_type == 'q' or args.learner_type == 's', \
         "learner type must be either 'q' or 's'."
