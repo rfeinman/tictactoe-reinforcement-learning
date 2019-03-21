@@ -7,7 +7,8 @@ import pickle
 import random
 import sys
 
-from agent import QLearner, SarsaLearner, Teacher
+from .agent import QLearner, SarsaLearner
+from .teacher import Teacher
 
 
 def plot_agent_reward(rewards, agent_type):
