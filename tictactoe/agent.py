@@ -120,6 +120,9 @@ class Qlearner(Learner):
             # terminal state update
             self.Q[a][s] += self.alpha*(r - self.Q[a][s])
 
+        # add r to rewards list
+        self.rewards.append(r)
+
 
 class SARSAlearner(Learner):
     """
@@ -151,3 +154,6 @@ class SARSAlearner(Learner):
         else:
             # terminal state update
             self.Q[a][s] += self.alpha*(r - self.Q[a][s])
+
+        # add r to rewards list
+        self.rewards.append(r)

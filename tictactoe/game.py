@@ -145,10 +145,8 @@ class Game:
             prev_state = new_state
             prev_action = new_action
             # append reward
-            self.computer.rewards.append(reward)
 
         # Game over. Perform final update
-        self.computer.rewards.append(reward)
         self.computer.update(prev_state, None, prev_action, None, reward)
 
     def start(self):
