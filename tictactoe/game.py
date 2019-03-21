@@ -4,7 +4,7 @@ import random
 class Game:
     """ The game class. New instance created for each new game. """
     def __init__(self, agent, teacher=None):
-        self.computer = agent
+        self.agent = agent
         self.teacher = teacher
         # initialize the game board
         self.board = [['-', '-', '-'], ['-', '-', '-'], ['-', '-', '-']]
@@ -33,9 +33,9 @@ class Game:
                 self.board[row][col] = 'X'
                 break
 
-    def computerMove(self, action):
+    def agentMove(self, action):
         """
-        Update board according to computer move.
+        Update board according to agent's move.
         """
         self.board[action[0]][action[1]] = 'O'
 
@@ -108,19 +108,19 @@ class Game:
         ----------
         player_first : boolean
             Whether or not the player will move first. If False, the
-            computer (agent) goes first.
+            agent goes first.
 
         """
         # Initialize the agent's state and action
         if player_first:
             self.playerMove()
         prev_state = getStateKey(self.board)
-        prev_action = self.computer.get_action(prev_state)
+        prev_action = self.agent.get_action(prev_state)
 
         # iterate until game is over
         while True:
             # execute oldAction, observe reward and state
-            self.computerMove(prev_action)
+            self.agentMove(prev_action)
             check = self.checkForEnd('O')
             if not check == -1:
                 # game is over. +1 reward if win, 0 if draw
@@ -138,16 +138,16 @@ class Game:
             new_state = getStateKey(self.board)
 
             # determine new action (epsilon-greedy)
-            new_action = self.computer.get_action(new_state)
+            new_action = self.agent.get_action(new_state)
             # update Q-values
-            self.computer.update(prev_state, new_state, prev_action, new_action, reward)
+            self.agent.update(prev_state, new_state, prev_action, new_action, reward)
             # reset "previous" values
             prev_state = new_state
             prev_action = new_action
             # append reward
 
         # Game over. Perform final update
-        self.computer.update(prev_state, None, prev_action, None, reward)
+        self.agent.update(prev_state, None, prev_action, None, reward)
 
     def start(self):
         """
