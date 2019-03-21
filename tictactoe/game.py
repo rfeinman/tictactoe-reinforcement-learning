@@ -51,7 +51,7 @@ class Game(object):
         else:
             self.printBoard()
             while True:
-                move = raw_input("Your move! Please select a row and column from 0-2 "
+                move = input("Your move! Please select a row and column from 0-2 "
                                  "in the format row,col: ")
                 try:
                     row, col = int(move[0]), int(move[2])
@@ -202,7 +202,7 @@ class Game(object):
                 self.playGame(agent_type, True)
         else:
             while True:
-                response = raw_input("Would you like to go first? [y/n]: ")
+                response = input("Would you like to go first? [y/n]: ")
                 if response == 'n' or response == 'no':
                     #self.playComputerFirst(agent_type)
                     self.playGame(agent_type, False)
@@ -253,7 +253,7 @@ class GameLearning(object):
             if ((args.learner_type == "q" and os.path.isfile('./qlearner_agent.pkl')) or
                     (args.learner_type == "s" and os.path.isfile('./qlearner_agent.pkl'))):
                 while True:
-                    response = raw_input("An agent state is already saved for this type. "
+                    response = input("An agent state is already saved for this type. "
                                          "Are you sure you want to overwrite? [y/n]: ")
                     if response == 'y' or response == 'yes':
                         break
@@ -276,7 +276,7 @@ class GameLearning(object):
         def play_again():
             print("Games played: %i" % self.games_played)
             while True:
-                play = raw_input("Do you want to play again? [y/n]: ")
+                play = input("Do you want to play again? [y/n]: ")
                 if play == 'y' or play == 'yes':
                     return True
                 elif play == 'n' or play == 'no':
