@@ -2,20 +2,18 @@ import argparse
 import os
 import pickle
 import sys
+import numpy as np
 import matplotlib.pylab as plt
 
-from tictactoe.agent import QLearner, SarsaLearner
+from tictactoe.agent import Qlearner, SARSAlearner
 from tictactoe.teacher import Teacher
 from tictactoe.game import Game
 
 
-def plot_agent_reward(rewards, agent_type):
-    """ Function to plot agent's accumulated reward vs. episode """
-    plt.plot(rewards)
-    if agent_type == 'q':
-        plt.title('Q-Learning Agent Cumulative Reward vs. Episode')
-    else:
-        plt.title('Sarsa Agent Cumulative Reward vs. Episode')
+def plot_agent_reward(rewards):
+    """ Function to plot agent's accumulated reward vs. iteration """
+    plt.plot(np.cumsum(rewards))
+    plt.title('Agent Cumulative Reward vs. Iteration')
     plt.ylabel('Reward')
     plt.xlabel('Episode')
     plt.show()
@@ -38,7 +36,6 @@ class GameLearning(object):
                 except IOError:
                     print("The agent file does not exist. Quitting.")
                     sys.exit(0)
-                self.type = 'q'
             else:
                 # SarsaLearner
                 try:
@@ -46,12 +43,11 @@ class GameLearning(object):
                 except IOError:
                     print("The agent file does not exist. Quitting.")
                     sys.exit(0)
-                self.type = 's'
             self.agent = pickle.load(f)
             f.close()
             # If plotting, show plot and quit
             if args.plot:
-                plot_agent_reward(self.agent.rewards, self.type)
+                plot_agent_reward(self.agent.rewards)
                 sys.exit(0)
         else:
             # check if agent state file already exists, and ask user whether to overwrite if so
@@ -68,11 +64,9 @@ class GameLearning(object):
                     else:
                         print("Invalid input. Please choose 'y' or 'n'.")
             if args.learner_type == "q":
-                self.agent = QLearner(alpha,gamma,epsilon)
-                self.type = 'q'
+                self.agent = Qlearner(alpha,gamma,epsilon)
             else:
-                self.agent = SarsaLearner(alpha,gamma,epsilon)
-                self.type = 's'
+                self.agent = SARSAlearner(alpha,gamma,epsilon)
 
     def beginPlaying(self):
         """ Loop through game iterations with a human player. """
@@ -91,7 +85,7 @@ class GameLearning(object):
 
         while True:
             game = Game(self.agent)
-            game.start(self.type)
+            game.start()
             self.games_played += 1
             if not play_again():
                 print("OK. Quitting.")
@@ -103,7 +97,7 @@ class GameLearning(object):
         # Train for alotted number of episodes
         while self.games_played < episodes:
             game = Game(self.agent, teacher=teacher)
-            game.start(self.type)
+            game.start()
             self.games_played += 1
             # Monitor progress
             if self.games_played % 500 == 0:
