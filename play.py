@@ -29,7 +29,7 @@ class GameLearning(object):
 
         if args.load:
             # load agent
-            if args.learner_type == 'q':
+            if args.agent_type == 'q':
                 # QLearner
                 try:
                     f = open('./qlearner_agent.pkl','rb')
@@ -51,8 +51,8 @@ class GameLearning(object):
                 sys.exit(0)
         else:
             # check if agent state file already exists, and ask user whether to overwrite if so
-            if ((args.learner_type == "q" and os.path.isfile('./qlearner_agent.pkl')) or
-                    (args.learner_type == "s" and os.path.isfile('./qlearner_agent.pkl'))):
+            if ((args.agent_type == "q" and os.path.isfile('./qlearner_agent.pkl')) or
+                    (args.agent_type == "s" and os.path.isfile('./qlearner_agent.pkl'))):
                 while True:
                     response = input("An agent state is already saved for this type. "
                                          "Are you sure you want to overwrite? [y/n]: ")
@@ -63,7 +63,7 @@ class GameLearning(object):
                         sys.exit(0)
                     else:
                         print("Invalid input. Please choose 'y' or 'n'.")
-            if args.learner_type == "q":
+            if args.agent_type == "q":
                 self.agent = Qlearner(alpha,gamma,epsilon)
             else:
                 self.agent = SARSAlearner(alpha,gamma,epsilon)
@@ -109,25 +109,27 @@ class GameLearning(object):
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Play Tic-Tac-Toe.")
-    parser.add_argument("learner_type", type=str, default="q",
-                        help="Specify the computer agent learning algorithm."
-                             "'q' for Q-learning and 's' for Sarsa-learning")
+    parser.add_argument('-a', "--agent_type", type=str, default="q",
+                        help="Specify the computer agent learning algorithm. "
+                             "AGENT_TYPE='q' for Q-learning and ='s' for Sarsa-learning")
     parser.add_argument("-l", "--load", action="store_true",
-                        help="load trained agent")
-    parser.add_argument("-t", "--teacher", default=None, type=int,
-                        help="employ teacher agent who knows the optimal strategy")
+                        help="whether to load trained agent")
+    parser.add_argument("-t", "--teacher_episodes", default=None, type=int,
+                        help="employ teacher agent who knows the optimal "
+                             "strategy and will play for TEACHER_EPISODES games")
     parser.add_argument("-p", "--plot", action="store_true",
-                        help="plot reward vs. episode of stored agent and quit")
+                        help="whether to plot reward vs. episode of stored agent "
+                             "and quit")
     args = parser.parse_args()
-    assert args.learner_type == 'q' or args.learner_type == 's', \
+    assert args.agent_type == 'q' or args.agent_type == 's', \
         "learner type must be either 'q' or 's'."
     if args.plot:
         assert args.load, "Must load an agent to plot reward."
-        assert args.teacher is None, \
+        assert args.teacher_episodes is None, \
             "Cannot plot and teach concurrently; must chose one or the other."
 
     gl = GameLearning(args)
-    if args.teacher is not None:
-        gl.beginTeaching(args.teacher)
+    if args.teacher_episodes is not None:
+        gl.beginTeaching(args.teacher_episodes)
     else:
         gl.beginPlaying()

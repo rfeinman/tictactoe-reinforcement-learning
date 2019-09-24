@@ -50,8 +50,8 @@ TODO: update this!
 #### Train a new agent manually
 To initialize a new agent and begin a new game loop, simply run:
 
-    python play.py q                (Q-learner)
-    python play.py s                (Sarsa-learner)
+    python play.py -a q                (Q-learner)
+    python play.py -a s                (Sarsa-learner)
 
 This will initialize the game and allow you to train the agent manually
 by playing against the agent repeatedly. Be careful, however, as initializing
@@ -64,16 +64,16 @@ To initialize a new RL agent and train it automatically with a teacher agent,
 use the flag '-t' followed by the number of game iterations you would like to
 train for:
 
-    python play.py q -t 5000        (Q-learner)
-    python play.py s -t 5000        (Sarsa-learner)
+    python play.py -a q -t 5000        (Q-learner)
+    python play.py -a s -t 5000        (Sarsa-learner)
 
 Again, be careful as this will overwrite previously-existing agents.
 
 #### Load a trained agent
 To load existing agents and play against them, run:
 
-    python play.py q -l             (Q-learner)
-    python play.py s -l             (Sarsa-learner)
+    python play.py -a q -l             (Q-learner)
+    python play.py -a s -l             (Sarsa-learner)
 
 I have trained an instance of each the Q-learner and Sarsa-learner agents
 and pickled them into .pkl files that are included here. These agents were
@@ -85,12 +85,12 @@ will be overwritten if you have initialized new agents.
 You can train existing agents further by loading them and teaching them, via
 a combination of '-t' and '-l':
 
-    python play.py q -l -t 5000     (Q-learner)
-    python play.py s -l -t 5000     (Sarsa-learner)
+    python play.py -a q -l -t 5000     (Q-learner)
+    python play.py -a s -l -t 5000     (Sarsa-learner)
 
 #### Load a trained agent and view reward history plot
 Finally, to load a stored agent and view a plot of its cumulative reward
 history, use '-l' in combination with '-p':
 
-    python play.py q -l -p          (Q-learner)
-    python play.py s -l -p          (Sarsa-learner)
+    python play.py -a q -l -p          (Q-learner)
+    python play.py -a s -l -p          (Sarsa-learner)
