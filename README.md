@@ -45,7 +45,7 @@ The GameLearner class holds the state of the current game sequence, which will c
 
 ## Running the Program
 
-TODO: update this!
+NOTE: THESE INSTRUCTIONS ARE OUTDATED. They will be updated soon.
 
 #### Train a new agent manually
 To initialize a new agent and begin a new game loop, simply run:
