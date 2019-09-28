@@ -1,5 +1,6 @@
 import random
 
+
 class Teacher:
     """ 
     A class to implement a teacher that knows the optimal playing strategy.
@@ -50,7 +51,7 @@ class Teacher:
                 return i, ind
         return None
 
-    def blockWin(self, board):
+    def block_win(self, board):
         """ Block the opponent if she has a win available. """
         return self.win(board, key='O')
 
@@ -90,7 +91,7 @@ class Teacher:
                 return 0, 0
         return None
 
-    def blockFork(self, board):
+    def block_fork(self, board):
         """ Block the opponents fork if she has one available. """
         corners = [board[0][0], board[2][0], board[0][2], board[2][2]]
         # Check all adjacent side middles
@@ -157,7 +158,7 @@ class Teacher:
             return 2, 2
         return None
 
-    def sideEmpty(self, board):
+    def side_empty(self, board):
         """ Pick an empty side. """
         if board[1][0] == '-':
             return 1, 0
@@ -169,7 +170,7 @@ class Teacher:
             return 0, 1
         return None
 
-    def randomMove(self, board):
+    def random_move(self, board):
         """ Chose a random move from the available options. """
         possibles = []
         for i in range(3):
@@ -178,7 +179,7 @@ class Teacher:
                     possibles += [(i, j)]
         return possibles[random.randint(0, len(possibles)-1)]
 
-    def makeMove(self, board):
+    def make_move(self, board):
         """
         Trainer goes through a hierarchy of moves, making the best move that
         is currently available each time. A touple is returned that represents
@@ -186,18 +187,18 @@ class Teacher:
         """
         # Chose randomly with some probability so that the teacher does not always win
         if random.random() > self.ability_level:
-            return self.randomMove(board)
+            return self.random_move(board)
         # Follow optimal strategy
         a = self.win(board)
         if a is not None:
             return a
-        a = self.blockWin(board)
+        a = self.block_win(board)
         if a is not None:
             return a
         a = self.fork(board)
         if a is not None:
             return a
-        a = self.blockFork(board)
+        a = self.block_fork(board)
         if a is not None:
             return a
         a = self.center(board)
@@ -206,7 +207,7 @@ class Teacher:
         a = self.corner(board)
         if a is not None:
             return a
-        a = self.sideEmpty(board)
+        a = self.side_empty(board)
         if a is not None:
             return a
-        return self.randomMove(board)
+        return self.random_move(board)

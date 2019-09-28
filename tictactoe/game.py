@@ -1,6 +1,7 @@
 import random
 from tictactoe import agent
 
+
 class Game:
     """ The game class. New instance created for each new game. """
     def __init__(self, agent: agent, teacher=None):
@@ -9,15 +10,15 @@ class Game:
         # initialize the game board
         self.board = [['-', '-', '-'], ['-', '-', '-'], ['-', '-', '-']]
 
-    def playerMove(self):
+    def player_move(self):
         """
-        Querry player for a move and update the board accordingly.
+        Query player for a move and update the board accordingly.
         """
         if self.teacher is not None:
-            action = self.teacher.makeMove(self.board)
+            action = self.teacher.make_move(self.board)
             self.board[action[0]][action[1]] = 'X'
         else:
-            printBoard(self.board)
+            print_board(self.board)
             while True:
                 move = input("Your move! Please select a row and column from 0-2 "
                              "in the format row,col: ")
@@ -33,13 +34,13 @@ class Game:
                 self.board[row][col] = 'X'
                 break
 
-    def agentMove(self, action):
+    def agent_move(self, action):
         """
         Update board according to agent's move.
         """
         self.board[action[0]][action[1]] = 'O'
 
-    def checkForWin(self, key):
+    def check_for_win(self, key):
         """
         Check to see whether the player/agent with token 'key' has won.
         Returns a boolean holding truth value.
@@ -62,7 +63,7 @@ class Game:
                 return True
         return False
 
-    def checkForDraw(self):
+    def check_for_draw(self):
         """
         Check to see whether the game has ended in a draw. Returns a
         boolean holding truth value.
@@ -74,7 +75,7 @@ class Game:
                     draw = False
         return draw
 
-    def checkForEnd(self, key):
+    def check_for_end(self, key):
         """
         Checks if player/agent with token 'key' has ended the game. Returns -1
         if the game is still going, 0 if it is a draw, and 1 if the player/agent
@@ -85,22 +86,22 @@ class Game:
         key : string
             token of most recent player. Either 'O' or 'X'
         """
-        if self.checkForWin(key):
+        if self.check_for_win(key):
             if self.teacher is None:
-                printBoard(self.board)
+                print_board(self.board)
                 if key == 'X':
                     print("Player wins!")
                 else:
                     print("RL agent wins!")
             return 1
-        elif self.checkForDraw():
+        elif self.check_for_draw():
             if self.teacher is None:
-                printBoard(self.board)
+                print_board(self.board)
                 print("It's a draw!")
             return 0
         return -1
 
-    def playGame(self, player_first):
+    def play_game(self, player_first):
         """ 
         Begin the tic-tac-toe game loop. 
 
@@ -113,21 +114,21 @@ class Game:
         """
         # Initialize the agent's state and action
         if player_first:
-            self.playerMove()
-        prev_state = getStateKey(self.board)
+            self.player_move()
+        prev_state = get_state_key(self.board)
         prev_action = self.agent.get_action(prev_state)
 
         # iterate until game is over
         while True:
             # execute oldAction, observe reward and state
-            self.agentMove(prev_action)
-            check = self.checkForEnd('O')
+            self.agent_move(prev_action)
+            check = self.check_for_end('O')
             if not check == -1:
                 # game is over. +1 reward if win, 0 if draw
                 reward = check
                 break
-            self.playerMove()
-            check = self.checkForEnd('X')
+            self.player_move()
+            check = self.check_for_end('X')
             if not check == -1:
                 # game is over. -1 reward if lose, 0 if draw
                 reward = -1*check
@@ -135,7 +136,7 @@ class Game:
             else:
                 # game continues. 0 reward
                 reward = 0
-            new_state = getStateKey(self.board)
+            new_state = get_state_key(self.board)
 
             # determine new action (epsilon-greedy)
             new_action = self.agent.get_action(new_state)
@@ -160,23 +161,24 @@ class Game:
         if self.teacher is not None:
             # During teaching, chose who goes first randomly with equal probability
             if random.random() < 0.5:
-                self.playGame(player_first=False)
+                self.play_game(player_first=False)
             else:
-                self.playGame(player_first=True)
+                self.play_game(player_first=True)
         else:
             while True:
                 response = input("Would you like to go first? [y/n]: ")
                 print('')
                 if response == 'n' or response == 'no':
-                    self.playGame(player_first=False)
+                    self.play_game(player_first=False)
                     break
                 elif response == 'y' or response == 'yes':
-                    self.playGame(player_first=True)
+                    self.play_game(player_first=True)
                     break
                 else:
                     print("Invalid input. Please enter 'y' or 'n'.")
 
-def printBoard(board):
+
+def print_board(board):
     """
     Prints the game board as text output to the terminal.
 
@@ -192,7 +194,8 @@ def printBoard(board):
             print('%s   ' % elt, end='')
         print('\n')
 
-def getStateKey(board):
+
+def get_state_key(board):
     """
     Converts 2D list representing the board state into a string key
     for that state. Keys are used for Q-value hashing.
