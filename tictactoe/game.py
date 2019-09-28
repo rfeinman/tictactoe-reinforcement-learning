@@ -1,9 +1,9 @@
 import random
-
+from tictactoe import agent
 
 class Game:
     """ The game class. New instance created for each new game. """
-    def __init__(self, agent, teacher=None):
+    def __init__(self, agent: agent, teacher=None):
         self.agent = agent
         self.teacher = teacher
         # initialize the game board
@@ -148,6 +148,7 @@ class Game:
 
         # Game over. Perform final update
         self.agent.update(prev_state, None, prev_action, None, reward)
+        self.agent.save_agent(self.agent.name() + ".pkl")
 
     def start(self):
         """

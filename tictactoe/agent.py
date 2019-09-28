@@ -40,6 +40,10 @@ class Learner(ABC):
         # Keep a list of reward received at each episode
         self.rewards = []
 
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
     def get_action(self, s):
         """
         Select an action given the current game state.
@@ -72,7 +76,8 @@ class Learner(ABC):
 
         return action
 
-    def save_agent(self, path):
+    def save_agent(self, file_name):
+        path = '{0}/{1}'.format('training', file_name)
         """ Pickle the agent object instance to save the agent's state. """
         if os.path.isfile(path):
             os.remove(path)
@@ -91,6 +96,9 @@ class Qlearner(Learner):
     """
     def __init__(self, alpha, gamma, eps, eps_decay=0.):
         super().__init__(alpha, gamma, eps, eps_decay)
+
+    def name(self):
+        return 'qlearner_agent'
 
     def update(self, s, s_, a, a_, r):
         """
@@ -130,6 +138,9 @@ class SARSAlearner(Learner):
     """
     def __init__(self, alpha, gamma, eps, eps_decay=0.):
         super().__init__(alpha, gamma, eps, eps_decay)
+
+    def name(self) -> str:
+        return 'sarsa_agent'
 
     def update(self, s, s_, a, a_, r):
         """
