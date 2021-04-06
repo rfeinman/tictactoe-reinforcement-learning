@@ -33,9 +33,9 @@ The main game loop can be found in the class's function playGame().
 
 #### Game Script
 
-To play the game (see "Running the Program" below for instructions) you will use the script called `play.py`. 
-This script is organized as follows. 
+To play the game (see "Running the Program" below for instructions) you will use the script called `play.py`.
 The GameLearner class holds the state of the current game sequence, which will continue until the player choses to stop or the teacher has finished the designated number of episodes.
+See instructions below on how to use this script.
 
 ## Running the Program
 
