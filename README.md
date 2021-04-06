@@ -1,9 +1,5 @@
 # Tic-Tac-Toe with Reinforcement Learning
-This is a repository for training an AI agent to play Tic-tac-toe using
-reinforcement learning. Both the SARSA and Q-learning RL
-algorithms are implemented. A user may teach the agent himself by
-playing the game for a couple of rounds, or he may apply an automated
-teacher agent. 
+This is a repository for training an AI agent to play Tic-tac-toe using reinforcement learning. Both the SARSA and Q-learning RL algorithms are implemented. A user may teach the agent themself by playing against it or apply an automated teacher agent. 
 
 ## Code Structure
 
@@ -43,52 +39,39 @@ The GameLearner class holds the state of the current game sequence, which will c
 
 ## Running the Program
 
-*THESE INSTRUCTIONS ARE OUTDATED*. They will be updated soon.
-
 #### Train a new agent manually
-To initialize a new agent and begin a new game loop, simply run:
+To initialize a new agent and begin a game loop, simply run:
 
     python play.py -a q                (Q-learner)
     python play.py -a s                (Sarsa-learner)
 
-This will initialize the game and allow you to train the agent manually
-by playing against the agent repeatedly. Be careful, however, as initializing
-a new agent will delete the state of the previous agents that were stored for
-the selected agent type. In the process of playing, you will be storing the
-new agent state with each game iteration.
+This will initialize the game and allow you to train the agent manually by playing against the agent yourself. In the process of playing, you will be storing the new agent state with each game iteration. Use the argument `-p` to specify a path where the agent pickle should be saved:
 
-#### Train a new agent automatically (via teacher agent)
-To initialize a new RL agent and train it automatically with a teacher agent,
-use the flag '-t' followed by the number of game iterations you would like to
-train for:
 
-    python play.py -a q -t 5000        (Q-learner)
-    python play.py -a s -t 5000        (Sarsa-learner)
+    python play.py -a q -p my_agent_path.pkl
 
-Again, be careful as this will overwrite previously-existing agents.
 
-#### Load a trained agent
-To load existing agents and play against them, run:
+If the file already exists, you'll be asked to overwrite. When unspecified, the path is set to either "q_agent.pkl" or "sarsa_agent.pkl" depending on agent type.
 
-    python play.py -a q -l             (Q-learner)
-    python play.py -a s -l             (Sarsa-learner)
+#### Train a new agent automatically via teacher
+To initialize a new RL agent and train it automatically with a teacher agent, use the flag `-t` followed by the number of game iterations you would like to train for:
 
-I have trained an instance of each the Q-learner and Sarsa-learner agents
-and pickled them into .pkl files that are included here. These agents were
-trained by a teacher of level 0.9 for 100000 episodes, and they have learned
-to play considerably well. You can make use of these if you like, but they
-will be overwritten if you have initialized new agents.
+    python play.py -a q -t 5000
 
-#### Load a trained agent and train it further
-You can train existing agents further by loading them and teaching them, via
-a combination of '-t' and '-l':
+Again, specify the pickle save path with the `-p` option.
 
-    python play.py -a q -l -t 5000     (Q-learner)
-    python play.py -a s -l -t 5000     (Sarsa-learner)
+#### Load an existing agent and continue training
+To load an existing agent and continue training, use the `-l` flag:
+
+    python play.py -a q -l             (load agent and train manually)
+    python play.py -a q -l -t 5000     (load agent and train via teacher)
+
+The agent will continue to learn and its pickle file will be overwritten. 
+
+For this use case, the argument `-a` is only used to define a default agent path (if not specified by `-p`); otherwise, the agent type is determined by the contents of the loaded pickle.
+
 
 #### Load a trained agent and view reward history plot
-Finally, to load a stored agent and view a plot of its cumulative reward
-history, use '-l' in combination with '-p':
+Finally, to load a stored agent and view a plot of its cumulative reward history, use the script plot_agent_reward.py:
 
-    python play.py -a q -l -p          (Q-learner)
-    python play.py -a s -l -p          (Sarsa-learner)
+    python plot_agent_reward.py -p my_agent.pkl

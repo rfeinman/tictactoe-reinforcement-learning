@@ -2,21 +2,11 @@ import argparse
 import os
 import pickle
 import sys
-import numpy as np
-import matplotlib.pylab as plt
 
 from tictactoe.agent import Qlearner, SARSAlearner
 from tictactoe.teacher import Teacher
 from tictactoe.game import Game
 
-
-def plot_agent_reward(rewards):
-    """ Function to plot agent's accumulated reward vs. iteration """
-    plt.plot(np.cumsum(rewards))
-    plt.title('Agent Cumulative Reward vs. Iteration')
-    plt.ylabel('Reward')
-    plt.xlabel('Episode')
-    plt.show()
 
 class GameLearning(object):
     """
@@ -25,48 +15,35 @@ class GameLearning(object):
     games that have been played.
     """
     def __init__(self, args, alpha=0.5, gamma=0.9, epsilon=0.1):
-        self.games_played = 0
 
         if args.load:
-            # load agent
-            if args.agent_type == 'q':
-                # QLearner
-                try:
-                    f = open('./qlearner_agent.pkl','rb')
-                except IOError:
-                    print("The agent file does not exist. Quitting.")
-                    sys.exit(0)
-            else:
-                # SarsaLearner
-                try:
-                    f = open('./sarsa_agent.pkl','rb')
-                except IOError:
-                    print("The agent file does not exist. Quitting.")
-                    sys.exit(0)
-            self.agent = pickle.load(f)
-            f.close()
-            # If plotting, show plot and quit
-            if args.plot:
-                plot_agent_reward(self.agent.rewards)
-                sys.exit(0)
+            # load an existing agent and continue training
+            if not os.path.isfile(args.path):
+                raise ValueError("Cannot load agent: file does not exist.")
+            with open(args.path, 'rb') as f:
+                agent = pickle.load(f)
         else:
-            # check if agent state file already exists, and ask user whether to overwrite if so
-            if ((args.agent_type == "q" and os.path.isfile('./qlearner_agent.pkl')) or
-                    (args.agent_type == "s" and os.path.isfile('./qlearner_agent.pkl'))):
+            # check if agent state file already exists, and ask
+            # user whether to overwrite if so
+            if os.path.isfile(args.path):
+                print('An agent is already saved at {}.'.format(args.path))
                 while True:
-                    response = input("An agent state is already saved for this type. "
-                                         "Are you sure you want to overwrite? [y/n]: ")
-                    if response == 'y' or response == 'yes':
+                    response = input("Are you sure you want to overwrite? [y/n]: ")
+                    if response.lower() in ['y', 'yes']:
                         break
-                    elif response == 'n' or response == 'no':
+                    elif response.lower() in ['n', 'no']:
                         print("OK. Quitting.")
                         sys.exit(0)
                     else:
                         print("Invalid input. Please choose 'y' or 'n'.")
             if args.agent_type == "q":
-                self.agent = Qlearner(alpha,gamma,epsilon)
+                agent = Qlearner(alpha,gamma,epsilon)
             else:
-                self.agent = SARSAlearner(alpha,gamma,epsilon)
+                agent = SARSAlearner(alpha,gamma,epsilon)
+
+        self.games_played = 0
+        self.path = args.path
+        self.agent = agent
 
     def beginPlaying(self):
         """ Loop through game iterations with a human player. """
@@ -87,6 +64,7 @@ class GameLearning(object):
             game = Game(self.agent)
             game.start()
             self.games_played += 1
+            self.agent.save(self.path)
             if not play_again():
                 print("OK. Quitting.")
                 break
@@ -102,33 +80,37 @@ class GameLearning(object):
             # Monitor progress
             if self.games_played % 1000 == 0:
                 print("Games played: %i" % self.games_played)
-
-        plot_agent_reward(self.agent.rewards)
+        # save final agent
+        self.agent.save(self.path)
 
 
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Play Tic-Tac-Toe.")
     parser.add_argument('-a', "--agent_type", type=str, default="q",
+                        choices=['q', 's'],
                         help="Specify the computer agent learning algorithm. "
-                             "AGENT_TYPE='q' for Q-learning and ='s' for Sarsa-learning")
+                             "AGENT_TYPE='q' for Q-learning and AGENT_TYPE='s' "
+                             "for Sarsa-learning.")
+    parser.add_argument("-p", "--path", type=str, required=False,
+                        help="Specify the path for the agent pickle file. "
+                             "Defaults to q_agent.pkl for AGENT_TYPE='q' and "
+                             "sarsa_agent.pkl for AGENT_TYPE='s'.")
     parser.add_argument("-l", "--load", action="store_true",
                         help="whether to load trained agent")
     parser.add_argument("-t", "--teacher_episodes", default=None, type=int,
                         help="employ teacher agent who knows the optimal "
                              "strategy and will play for TEACHER_EPISODES games")
-    parser.add_argument("-p", "--plot", action="store_true",
-                        help="whether to plot reward vs. episode of stored agent "
-                             "and quit")
     args = parser.parse_args()
-    assert args.agent_type == 'q' or args.agent_type == 's', \
-        "learner type must be either 'q' or 's'."
-    if args.plot:
-        assert args.load, "Must load an agent to plot reward."
-        assert args.teacher_episodes is None, \
-            "Cannot plot and teach concurrently; must chose one or the other."
 
+    # set default path
+    if args.path is None:
+        args.path = 'q_agent.pkl' if args.agent_type == 'q' else 'sarsa_agent.pkl'
+
+    # initialize game instance
     gl = GameLearning(args)
+
+    # play or teach
     if args.teacher_episodes is not None:
         gl.beginTeaching(args.teacher_episodes)
     else:
