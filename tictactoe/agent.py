@@ -72,7 +72,7 @@ class Learner(ABC):
 
         return action
 
-    def save_agent(self, path):
+    def save(self, path):
         """ Pickle the agent object instance to save the agent's state. """
         if os.path.isfile(path):
             os.remove(path)
