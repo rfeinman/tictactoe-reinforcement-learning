@@ -51,7 +51,7 @@ This will initialize the game and allow you to train the agent manually by playi
     python play.py -a q -p my_agent_path.pkl
 
 
-If the file already exists, you'll be asked to overwrite. When unspecified, the path is set to either "q_agent.pkl" or "sarsa_agent.pkl" depending on agent type.
+When unspecified, the path is set to either "q_agent.pkl" or "sarsa_agent.pkl" depending on agent type. If the file already exists, you'll be asked to overwrite.
 
 #### Train a new agent automatically via teacher
 To initialize a new RL agent and train it automatically with a teacher agent, use the flag `-t` followed by the number of game iterations you would like to train for:
