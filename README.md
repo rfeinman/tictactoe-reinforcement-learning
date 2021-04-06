@@ -74,4 +74,4 @@ For this use case, the argument `-a` is only used to define a default agent path
 #### Load a trained agent and view reward history plot
 Finally, to load a stored agent and view a plot of its cumulative reward history, use the script plot_agent_reward.py:
 
-    python plot_agent_reward.py -p my_agent.pkl
+    python plot_agent_reward.py -p q_agent.pkl
