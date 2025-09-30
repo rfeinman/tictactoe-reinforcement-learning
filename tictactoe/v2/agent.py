@@ -30,8 +30,7 @@ class Agent(ABC):
         self.eps = eps
         self.eps_decay = eps_decay
 
-        # Initialize Q values to 0 for all state-action pairs. Accessed as Q[a][s]
-        #self.Q = {a: defaultdict(int) for a in self.actions}
+        # Initialize Q values to 0 for all state-action pairs. Accessed as Q[s][a]
         self.Q = defaultdict(lambda: defaultdict(float))
 
         # Keep a list of reward received at each episode
@@ -59,7 +58,7 @@ class Agent(ABC):
         else:
             # Greedy choice.
             # If multiple options are equally good, sample from them
-            values = np.array([self.Q[a][s] for a in allowed_actions])
+            values = np.array([self.Q[s][a] for a in allowed_actions])
             idx_max, = np.where(values == np.max(values))
             action_idx = np.random.choice(idx_max) if len(idx_max) > 1 else idx_max[0]
 
@@ -113,7 +112,6 @@ class Agent(ABC):
             metrics = defaultdict(list)
             while True:
                 callback(it, s, a)
-                metrics['q(s,a)'].append(self.Q[a][s])
 
                 # execute action and observe reward + new state
                 r, s_ = env.execute(s, a)
@@ -183,11 +181,11 @@ class QLearningAgent(Agent):
             reward received after executing action "a" in state "s"
         """
         if s_ is not None:
-            maxQ = max(self.Q[aa][s_] for aa in self.allowed_actions(s_))
-            self.Q[a][s] += self.alpha * (r + self.gamma * maxQ - self.Q[a][s])
+            maxQ = max(self.Q[s_][aa] for aa in self.allowed_actions(s_))
+            self.Q[s][a] += self.alpha * (r + self.gamma * maxQ - self.Q[s][a])
         else:
             # terminal state update
-            self.Q[a][s] += self.alpha * (r - self.Q[a][s])
+            self.Q[s][a] += self.alpha * (r - self.Q[s][a])
 
 
 class SarsaAgent(Agent):
@@ -210,10 +208,10 @@ class SarsaAgent(Agent):
             reward received after executing action "a" in state "s"
         """
         if s_ is not None:
-            self.Q[a][s] += self.alpha * (r + self.gamma * self.Q[a_][s_] - self.Q[a][s])
+            self.Q[s][a] += self.alpha * (r + self.gamma * self.Q[s_][a_] - self.Q[s][a])
         else:
             # terminal state update
-            self.Q[a][s] += self.alpha * (r - self.Q[a][s])
+            self.Q[s][a] += self.alpha * (r - self.Q[s][a])
 
 
 class TicTacToeQLearningAgent(QLearningAgent, TicTacToeAgent):
