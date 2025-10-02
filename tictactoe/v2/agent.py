@@ -1,3 +1,4 @@
+from typing import Optional, Union, Any, List, Tuple
 import numpy as np
 import random
 from abc import ABC, abstractmethod
@@ -6,12 +7,14 @@ from collections import defaultdict
 from .environment import Environment
 
 
-class Agent(ABC):
+class Agent:
     """
-    Parent class for Q-learning and SARSA agents.
+    Class for Q-learning and SARSA agents.
 
     Parameters
     ----------
+    sarsa : bool
+        whether to use the SARSA update rule (vs Q-learning rule)
     alpha : float
         learning rate
     gamma : float
@@ -21,10 +24,10 @@ class Agent(ABC):
     eps_decay : float
         epsilon decay rate. Larger value = more decay
     """
-    actions: list
 
-    def __init__(self, alpha=0.5, gamma=0.9, eps=0.1, eps_decay=0.0):
+    def __init__(self, sarsa=False, alpha=0.5, gamma=0.9, eps=0.1, eps_decay=0.0):
         # Agent parameters
+        self.sarsa = sarsa
         self.alpha = alpha
         self.gamma = gamma
         self.eps = eps
@@ -34,47 +37,42 @@ class Agent(ABC):
         self.Q = defaultdict(lambda: defaultdict(float))
 
         # Keep a list of reward received at each episode
-        self.rewards = []
+        self.metrics = defaultdict(list)
 
-    @abstractmethod
-    def allowed_actions(self, s) -> list:
-        pass
+    def select_action(self, s: Any, env: Environment) -> Tuple[Any, float]:
+        allowed_actions = env.get_actions(s)
 
-    def select_action(self, s):
-        """
-        Select an action given the current game state.
-
-        Parameters
-        ----------
-        s : string
-            state
-        """
-        # Only consider the allowed actions (empty board spaces)
-        allowed_actions = self.allowed_actions(s)
+        # Greedy choice
+        Q_vals = np.array([self.Q[s][aa] for aa in allowed_actions])
+        Q_max = Q_vals.max()
 
         if random.random() < self.eps:
             # Random choice.
-            action_idx = random.randrange(len(allowed_actions))
+            a = random.choice(allowed_actions)
+            #a = allowed_actions[random.randrange(len(allowed_actions))]
         else:
-            # Greedy choice.
+            # Greedy choice
             # If multiple options are equally good, sample from them
-            values = np.array([self.Q[s][a] for a in allowed_actions])
-            idx_max, = np.where(values == np.max(values))
-            action_idx = np.random.choice(idx_max) if len(idx_max) > 1 else idx_max[0]
-
-        # select
-        action = allowed_actions[action_idx]
+            idx_max, = np.where(Q_vals == Q_max)
+            a = allowed_actions[random.choice(idx_max)]
+            #a = allowed_actions[np.random.choice(idx_max) if len(idx_max) > 1 else idx_max[0]]
 
         # update epsilon; geometric decay
         if self.eps_decay > 0:
             self.eps *= 1 - self.eps_decay
 
-        return action
+        # keep track of important metrics (TODO: update this)
+        self.metrics['q(s,a)'].append(self.Q[s][a])
+        # qs = np.array([q for qs in self.Q.values() for q in qs.values()])
+        # #qs = np.array([self.Q[s][a] for s in self.Q.keys() for a in env.get_actions(s)])
+        # metrics['q_min'].append(qs.min())
+        # metrics['q_max'].append(qs.max())
+        # metrics['q_mean'].append(qs.mean())
 
-    @abstractmethod
-    def update(self, s, s_, a, a_, r) -> None:
-        """
-        Perform the update of Q(s,a).
+        return a, float(Q_max)
+
+    def update(self, s: Any, s_: Any, a: Any, a_: Any, r: float, Q_max: float) -> None:
+        """Perform the update of Q(s,a)
 
         Parameters
         ----------
@@ -89,7 +87,31 @@ class Agent(ABC):
         r : int
             reward received after executing action "a" in state "s"
         """
-        pass
+        if self.sarsa:
+            self.Q[s][a] += self.alpha * (r + self.gamma * self.Q[s_][a_] - self.Q[s][a])
+        else:
+            self.Q[s][a] += self.alpha * (r + self.gamma * Q_max - self.Q[s][a])
+
+        self.metrics['reward'].append(r)
+
+    def terminal_update(self, s: Any, a: Any, r: float) -> None:
+        """Perform the *terminal* update of Q(s,a)
+
+        A terminal update occurs when, after taking action a from
+        state s, we land in a *terminal* state s_
+
+        Parameters
+        ----------
+        s : string
+            previous state
+        a : (i,j) tuple
+            previous action
+        r : int
+            reward received after executing action "a" in state "s"
+        """
+        self.Q[s][a] += self.alpha * (r - self.Q[s][a])
+
+        self.metrics['reward'].append(r)
 
     def run(self, env: Environment, episodes=1, progress_bar=False, verbose=False):
         from tqdm import tqdm
@@ -104,28 +126,20 @@ class Agent(ABC):
             callback = lambda *args, **kwargs: None
 
         s = env.initialize()
-        a = self.select_action(s)
+        a, _ = self.select_action(s, env)
 
         with tqdm(total=episodes, ncols=120, disable=not progress_bar) as pbar:
             it = 0
             ep = 0
-            metrics = defaultdict(list)
             while True:
                 callback(it, s, a)
-                metrics['q(s,a)'].append(self.Q[s][a])
 
                 # execute action and observe reward + new state
                 r, s_ = env.execute(s, a)
-                metrics['reward'].append(r)
-                # q_vals = np.array([q for qs in self.Q.values() for q in qs.values()])
-                # #q_vals = np.array([self.Q[s][a] for s in self.Q.keys() for a in self.allowed_actions(s)])
-                # metrics['q_min'].append(q_vals.min())
-                # metrics['q_max'].append(q_vals.max())
-                # metrics['q_mean'].append(q_vals.mean())
 
                 if env.is_terminal(s_):
                     # Perform final update
-                    self.update(s, None, a, None, r)
+                    self.terminal_update(s, a, r)
 
                     #callback(it, s, a)
                     ep += 1
@@ -138,93 +152,18 @@ class Agent(ABC):
                             print('-------- RESTART --------\n')
                         #it = 0
                         s = env.initialize()
-                        a = self.select_action(s)
+                        a, _ = self.select_action(s, env)
                         continue
 
                 # select new action
-                a_ = self.select_action(s_)
+                a_, Q_max = self.select_action(s_, env)
+                self.update(s, s_, a, a_, r, Q_max)
 
                 # update action-value function
-                self.update(s, s_, a, a_, r)
                 s, a = s_, a_
                 it += 1
 
-        return dict(metrics)
-
-
-class TicTacToeAgent(Agent):
-    # Possible actions correspond to the set of all x,y coordinate pairs
-    actions = [(i,j) for i in range(3) for j in range(3)]
-
-    def allowed_actions(self, s) -> list:
-        # Allowed actions = empty board spaces in TicTacToe
-        if isinstance(s, str):
-            return [a for a in self.actions if s[a[0] * 3 + a[1]] == '-']
-        return [a for a in self.actions if s[a[0]][a[1]] == '-']
-
-
-class QLearningAgent(Agent):
-    """ Implementation of the Q-learning agent """
-    def update(self, s, s_, a, a_, r):
-        """
-        Perform the Q-Learning update of Q(s,a).
-
-        Parameters
-        ----------
-        s : string
-            previous state
-        s_ : string
-            new state
-        a : (i,j) tuple
-            previous action
-        a_ : (i,j) tuple
-            new action. NOT used by Q-learner!
-        r : int
-            reward received after executing action "a" in state "s"
-        """
-        if s_ is not None:
-            maxQ = max(self.Q[s_][aa] for aa in self.allowed_actions(s_))
-            self.Q[s][a] += self.alpha * (r + self.gamma * maxQ - self.Q[s][a])
-        else:
-            # terminal state update
-            self.Q[s][a] += self.alpha * (r - self.Q[s][a])
-
-
-class SarsaAgent(Agent):
-    """ Implementation of the SARSA-learning agent """
-    def update(self, s, s_, a, a_, r):
-        """
-        Perform the SARSA update of Q(s,a).
-
-        Parameters
-        ----------
-        s : string
-            previous state
-        s_ : string
-            new state
-        a : (i,j) tuple
-            previous action
-        a_ : (i,j) tuple
-            new action
-        r : int
-            reward received after executing action "a" in state "s"
-        """
-        if s_ is not None:
-            self.Q[s][a] += self.alpha * (r + self.gamma * self.Q[s_][a_] - self.Q[s][a])
-        else:
-            # terminal state update
-            self.Q[s][a] += self.alpha * (r - self.Q[s][a])
-
-
-class TicTacToeQLearningAgent(QLearningAgent, TicTacToeAgent):
-    pass
-
-
-class TicTacToeSarsaAgent(SarsaAgent, TicTacToeAgent):
-    pass
-
 
 if __name__ == '__main__':
-    #agent = TicTacToeAgent()
-    agent = TicTacToeQLearningAgent()
+    agent = Agent()
     print(f'type(agent) = {type(agent).__name__}')

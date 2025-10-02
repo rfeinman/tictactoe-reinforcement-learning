@@ -3,6 +3,9 @@ from abc import ABC, abstractmethod
 
 
 class Environment(ABC):
+    @abstractmethod
+    def get_actions(self, s) -> list:
+        pass
 
     @abstractmethod
     def initialize(self):
@@ -122,6 +125,18 @@ class TicTacToe(Environment):
         #self.agent = agent
         self.player = player
         self.use_string = use_string
+
+    def get_actions(self, s) -> list:
+        # Possible actions: set of all (x,y) grid locations
+        all_actions = [(i,j) for i in range(3) for j in range(3)]
+
+        # Allowed actions: empty board spaces in TicTacToe
+        if isinstance(s, str):
+            allowed_actions = [a for a in all_actions if s[a[0] * 3 + a[1]] == '-']
+        else:
+            allowed_actions = [a for a in all_actions if s[a[0]][a[1]] == '-']
+
+        return allowed_actions
 
     def initialize(self, agent_first=None):
         """ return initial state s """
