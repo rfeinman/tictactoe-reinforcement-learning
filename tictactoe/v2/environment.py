@@ -1,26 +1,7 @@
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, TypeAlias
 import numbers
 import random
 from abc import ABC, abstractmethod
-
-
-class Environment(ABC):
-    @abstractmethod
-    def get_actions(self, s) -> list:
-        pass
-
-    @abstractmethod
-    def initialize(self):
-        """ return initial state s """
-        pass
-
-    @abstractmethod
-    def execute(self, s, a):
-        """ execute action a from state s, return new state s' and reward r """
-        pass
-
-    def is_terminal(self, s):
-        return False
 
 
 class State(ABC):
@@ -29,6 +10,28 @@ class State(ABC):
 
 class Action(ABC):
     pass
+
+
+Reward: TypeAlias = float
+
+
+class Environment(ABC):
+    @abstractmethod
+    def get_actions(self, s: State) -> List[Action]:
+        pass
+
+    @abstractmethod
+    def initialize(self) -> State:
+        """ return initial state s """
+        pass
+
+    @abstractmethod
+    def execute(self, s: State, a: Action) -> Tuple[Reward, State]:
+        """ execute action a from state s, return reward r and new state s' """
+        pass
+
+    def is_terminal(self, s: State) -> bool:
+        return False
 
 
 # -------------------------------------------------------
@@ -185,7 +188,7 @@ class TicTacToe(Environment):
 
         return game_over
 
-    def execute(self, state: GameBoard, action: TicTacToeAction) -> Tuple[float, GameBoard]:
+    def execute(self, state: GameBoard, action: TicTacToeAction) -> Tuple[Reward, GameBoard]:
         # NOTE: always make a copy to avoid modifying `state`
         board = GameBoard(state)
 
