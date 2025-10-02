@@ -112,14 +112,16 @@ class Agent(ABC):
             metrics = defaultdict(list)
             while True:
                 callback(it, s, a)
+                metrics['q(s,a)'].append(self.Q[s][a])
 
                 # execute action and observe reward + new state
                 r, s_ = env.execute(s, a)
                 metrics['reward'].append(r)
-                q_vals = np.array([q for qs in self.Q.values() for q in qs.values()])
-                metrics['q_min'].append(q_vals.min())
-                metrics['q_max'].append(q_vals.max())
-                metrics['q_mean'].append(q_vals.mean())
+                # q_vals = np.array([q for qs in self.Q.values() for q in qs.values()])
+                # #q_vals = np.array([self.Q[s][a] for s in self.Q.keys() for a in self.allowed_actions(s)])
+                # metrics['q_min'].append(q_vals.min())
+                # metrics['q_max'].append(q_vals.max())
+                # metrics['q_mean'].append(q_vals.mean())
 
                 if env.is_terminal(s_):
                     # Perform final update
