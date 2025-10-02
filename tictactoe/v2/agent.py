@@ -1,7 +1,6 @@
 from typing import Optional, Union, Any, List, Tuple
 import numpy as np
 import random
-from abc import ABC, abstractmethod
 from collections import defaultdict
 
 from .environment import Environment
@@ -71,45 +70,45 @@ class Agent:
 
         return a, float(Q_max)
 
-    def update(self, s: Any, s_: Any, a: Any, a_: Any, r: float, Q_max: float) -> None:
+    def update(
+            self,
+            s: Any,
+            a: Any,
+            r: float,
+            *,
+            s_: Optional[Any] = None,
+            a_: Optional[Any] = None,
+            Q_max: Optional[float] = None,
+            ) -> None:
         """Perform the update of Q(s,a)
 
         Parameters
         ----------
         s : string
             previous state
-        s_ : string
-            new state
         a : (i,j) tuple
             previous action
-        a_ : (i,j) tuple
-            new action. NOT used by Q-learner!
-        r : int
+        r : float
             reward received after executing action "a" in state "s"
+        s_ : string
+            new state
+        a_ : (i,j) tuple
+            new action. Only used by SARSA agent (sarsa=True)
+        Q_max : float
+            Q value of the greedy action from state s_. Only used
+            by Q-learning agent (sarsa=False)
         """
-        if self.sarsa:
+        assert (s_ is not None) == (a_ is not None) == (Q_max is not None)
+
+        if s_ is None:
+            # Perform the *terminal* update of Q(s, a).
+            # A terminal update occurs when, after taking action `a` from
+            # state `s`, we land in a *terminal* state `s_`.
+            self.Q[s][a] += self.alpha * (r - self.Q[s][a])
+        elif self.sarsa:
             self.Q[s][a] += self.alpha * (r + self.gamma * self.Q[s_][a_] - self.Q[s][a])
         else:
             self.Q[s][a] += self.alpha * (r + self.gamma * Q_max - self.Q[s][a])
-
-        self.metrics['reward'].append(r)
-
-    def terminal_update(self, s: Any, a: Any, r: float) -> None:
-        """Perform the *terminal* update of Q(s,a)
-
-        A terminal update occurs when, after taking action a from
-        state s, we land in a *terminal* state s_
-
-        Parameters
-        ----------
-        s : string
-            previous state
-        a : (i,j) tuple
-            previous action
-        r : int
-            reward received after executing action "a" in state "s"
-        """
-        self.Q[s][a] += self.alpha * (r - self.Q[s][a])
 
         self.metrics['reward'].append(r)
 
@@ -139,7 +138,7 @@ class Agent:
 
                 if env.is_terminal(s_):
                     # Perform final update
-                    self.terminal_update(s, a, r)
+                    self.update(s, a, r)
 
                     #callback(it, s, a)
                     ep += 1
@@ -157,7 +156,7 @@ class Agent:
 
                 # select new action
                 a_, Q_max = self.select_action(s_, env)
-                self.update(s, s_, a, a_, r, Q_max)
+                self.update(s, a, r, s_=s_, a_=a_, Q_max=Q_max)
 
                 # update action-value function
                 s, a = s_, a_
