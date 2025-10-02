@@ -144,10 +144,9 @@ class TicTacToe(Environment):
     """ The game class. New instance created for each new game. """
 
     # NOTE: for now, player == teacher
-    def __init__(self, player, use_string=False):
+    def __init__(self, player):
         #self.agent = agent
         self.player = player
-        self.use_string = use_string
 
     def get_actions(self, s) -> list:
         # Possible actions: set of all (x,y) grid locations
@@ -161,7 +160,7 @@ class TicTacToe(Environment):
 
         return allowed_actions
 
-    def initialize(self, agent_first=None):
+    def initialize(self, agent_first: Optional[bool] = None) -> GameBoard:
         """ return initial state s """
         if agent_first is None:
             agent_first = random.random() < 0.5
@@ -171,10 +170,12 @@ class TicTacToe(Environment):
             xy = self.player.makeMove(board)
             board.update(xy, 'X')
 
-        return board.to_string() if self.use_string else board
+        initial_state = board
 
-    def is_terminal(self, state):
-        board = GameBoard(state) if self.use_string else state
+        return initial_state
+
+    def is_terminal(self, state: GameBoard) -> bool:
+        board = state
 
         game_over = (
             board.check_for_win('O')
@@ -184,8 +185,8 @@ class TicTacToe(Environment):
 
         return game_over
 
-    def execute(self, state, action):
-        #board = GameBoard.from_string(state) if self.use_string else GameBoard(state)
+    def execute(self, state: GameBoard, action: TicTacToeAction) -> Tuple[float, GameBoard]:
+        # NOTE: always make a copy to avoid modifying `state`
         board = GameBoard(state)
 
         # execute oldAction, observe reward and state
@@ -216,7 +217,7 @@ class TicTacToe(Environment):
                 reward = 0
                 game_over = False
 
-        new_state = board.to_string() if self.use_string else board
+        new_state = board
 
         return reward, new_state
 
