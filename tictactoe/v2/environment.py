@@ -48,7 +48,7 @@ class TicTacToeAction(list, Action):
         return hash(tuple(self))
 
 
-class GameBoard(list, State):
+class TicTacToeState(list, State):
     _allowed_keys = {'-', 'X', 'O'}
 
     def __init__(self, data=None):
@@ -148,7 +148,6 @@ class TicTacToe(Environment):
 
     # NOTE: for now, player == teacher
     def __init__(self, player):
-        #self.agent = agent
         self.player = player
 
     def get_actions(self, s) -> list:
@@ -163,12 +162,12 @@ class TicTacToe(Environment):
 
         return allowed_actions
 
-    def initialize(self, agent_first: Optional[bool] = None) -> GameBoard:
+    def initialize(self, agent_first: Optional[bool] = None) -> TicTacToeState:
         """ return initial state s """
         if agent_first is None:
             agent_first = random.random() < 0.5
 
-        board = GameBoard()
+        board = TicTacToeState()
         if not agent_first:
             xy = self.player.makeMove(board)
             board.update(xy, 'X')
@@ -177,7 +176,7 @@ class TicTacToe(Environment):
 
         return initial_state
 
-    def is_terminal(self, state: GameBoard) -> bool:
+    def is_terminal(self, state: TicTacToeState) -> bool:
         board = state
 
         game_over = (
@@ -188,9 +187,9 @@ class TicTacToe(Environment):
 
         return game_over
 
-    def execute(self, state: GameBoard, action: TicTacToeAction) -> Tuple[Reward, GameBoard]:
+    def execute(self, state: TicTacToeState, action: TicTacToeAction) -> Tuple[Reward, TicTacToeState]:
         # NOTE: always make a copy to avoid modifying `state`
-        board = GameBoard(state)
+        board = TicTacToeState(state)
 
         # execute oldAction, observe reward and state
         board.update(action, 'O')
