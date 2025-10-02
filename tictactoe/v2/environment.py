@@ -1,3 +1,5 @@
+from typing import Optional, Union, List, Tuple
+import numbers
 import random
 from abc import ABC, abstractmethod
 
@@ -21,9 +23,29 @@ class Environment(ABC):
         return False
 
 
+class State(ABC):
+    pass
+
+
+class Action(ABC):
+    pass
+
+
 # -------------------------------------------------------
 
-class GameBoard(list):
+class TicTacToeAction(list, Action):
+    def __init__(self, *args):
+        data = args[0] if len(args) == 1 else args
+        assert len(data) == 2
+        assert all(isinstance(coord, numbers.Integral) for coord in data)
+        assert all(0 <= coord < 3 for coord in data)
+        super().__init__(data)
+
+    def __hash__(self):
+        return hash(tuple(self))
+
+
+class GameBoard(list, State):
     _allowed_keys = {'-', 'X', 'O'}
 
     def __init__(self, data=None):
@@ -61,9 +83,10 @@ class GameBoard(list):
         #data = self.to_string()
         return hash(data)
 
-    def update(self, loc, key: str) -> None:
+    def update(self, loc: Union[TicTacToeAction, list, tuple], key: str) -> None:
         assert key in self._allowed_keys
-        self[loc[0]][loc[1]] = key
+        i, j = loc
+        self[i][j] = key
 
     def check_for_win(self, key: str) -> bool:
         """
@@ -128,7 +151,7 @@ class TicTacToe(Environment):
 
     def get_actions(self, s) -> list:
         # Possible actions: set of all (x,y) grid locations
-        all_actions = [(i,j) for i in range(3) for j in range(3)]
+        all_actions = [TicTacToeAction(i,j) for i in range(3) for j in range(3)]
 
         # Allowed actions: empty board spaces in TicTacToe
         if isinstance(s, str):

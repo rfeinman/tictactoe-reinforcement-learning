@@ -3,7 +3,7 @@ import numpy as np
 import random
 from collections import defaultdict
 
-from .environment import Environment
+from .environment import Environment, State, Action
 
 
 class Agent:
@@ -38,7 +38,7 @@ class Agent:
         # Keep a list of reward received at each episode
         self.metrics = defaultdict(list)
 
-    def select_action(self, s: Any, env: Environment) -> Tuple[Any, float]:
+    def select_action(self, s: State, env: Environment) -> Tuple[Action, float]:
         allowed_actions = env.get_actions(s)
 
         # Greedy choice
@@ -72,27 +72,27 @@ class Agent:
 
     def update(
             self,
-            s: Any,
-            a: Any,
+            s: State,
+            a: Action,
             r: float,
             *,
-            s_: Optional[Any] = None,
-            a_: Optional[Any] = None,
+            s_: Optional[State] = None,
+            a_: Optional[Action] = None,
             Q_max: Optional[float] = None,
             ) -> None:
         """Perform the update of Q(s,a)
 
         Parameters
         ----------
-        s : string
+        s : State
             previous state
-        a : (i,j) tuple
+        a : Action
             previous action
         r : float
             reward received after executing action "a" in state "s"
-        s_ : string
+        s_ : State
             new state
-        a_ : (i,j) tuple
+        a_ : Action
             new action. Only used by SARSA agent (sarsa=True)
         Q_max : float
             Q value of the greedy action from state s_. Only used
