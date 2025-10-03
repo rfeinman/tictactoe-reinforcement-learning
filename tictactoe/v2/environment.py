@@ -17,7 +17,7 @@ Reward: TypeAlias = float
 
 class Environment(ABC):
     @abstractmethod
-    def get_actions(self, s: State) -> List[Action]:
+    def get_actions(self, s: Optional[State] = None) -> List[Action]:
         pass
 
     @abstractmethod
@@ -150,17 +150,18 @@ class TicTacToe(Environment):
     def __init__(self, player):
         self.player = player
 
-    def get_actions(self, s) -> list:
+    def get_actions(self, s: Optional[TicTacToeState] = None) -> list:
         # Possible actions: set of all (x,y) grid locations
-        all_actions = [TicTacToeAction(i,j) for i in range(3) for j in range(3)]
+        actions = [TicTacToeAction(i,j) for i in range(3) for j in range(3)]
 
         # Allowed actions: empty board spaces in TicTacToe
-        if isinstance(s, str):
-            allowed_actions = [a for a in all_actions if s[a[0] * 3 + a[1]] == '-']
-        else:
-            allowed_actions = [a for a in all_actions if s[a[0]][a[1]] == '-']
+        if s is not None:
+            if isinstance(s, str):
+                actions = [a for a in actions if s[a[0] * 3 + a[1]] == '-']
+            else:
+                actions = [a for a in actions if s[a[0]][a[1]] == '-']
 
-        return allowed_actions
+        return actions
 
     def initialize(self, agent_first: Optional[bool] = None) -> TicTacToeState:
         """ return initial state s """
