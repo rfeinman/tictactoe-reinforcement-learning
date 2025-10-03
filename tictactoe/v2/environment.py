@@ -177,20 +177,16 @@ class TicTacToe(Environment):
 
         return initial_state
 
-    def is_terminal(self, state: TicTacToeState) -> bool:
-        board = state
-
-        game_over = (
+    def is_terminal(self, board: TicTacToeState) -> bool:
+        return (
             board.check_for_win('O')
             or board.check_for_win('X')
             or board.check_for_draw()
         )
 
-        return game_over
-
-    def execute(self, state: TicTacToeState, action: TicTacToeAction) -> Tuple[Reward, TicTacToeState]:
+    def execute(self, board: TicTacToeState, action: TicTacToeAction) -> Tuple[Reward, TicTacToeState]:
         # NOTE: always make a copy to avoid modifying `state`
-        board = TicTacToeState(state)
+        board = TicTacToeState(board)
 
         # execute oldAction, observe reward and state
         board.update(action, 'O')
@@ -220,7 +216,5 @@ class TicTacToe(Environment):
                 reward = 0
                 game_over = False
 
-        new_state = board
-
-        return reward, new_state
+        return reward, board
 
