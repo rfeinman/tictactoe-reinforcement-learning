@@ -3,7 +3,7 @@ import numpy as np
 import random
 from collections import defaultdict
 
-from .environment import Environment, State, Action
+from .environments import Environment, State, Action
 
 
 class Agent:
